@@ -3,14 +3,14 @@
 %the resulting state trajectories x, and cost C. Costs C1, C2 and C3 are
 %associated with the strategy, the acutely symptomatic population and the
 %number of deaths respectively.-------------------------------------------- 
-function [x, u, zeta, C, C1, C2, C3, C4] = Sim_simple(dt, beta,  gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, H_th, C_dth, Q, v_set, psi, psi_hat, theta_z)
+function [x, u, zeta, C, C1, C2, C3, C4] = Sim_simple(dt, beta,  gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, C_dth, Q, v_set, psi, psi_hat, theta_z)
 
 
 
 T_days = 365; %Number of days
 
 R = 1; %Cost associated with government strategy (used as basis)
-z_max = 0.05;
+z_max = 0.005;
 
 %Initial conditions
 r = 0.00001;
@@ -35,16 +35,16 @@ zeta(1:T,1) = 0.1;          %Initialisation of z
 
 %Initialization of states and costs
 for k=2:T
-x(:,k) = epidem(dt, x(:,k-1), beta(1,1), u(k-1,1),v(k-1,1), zeta(k-1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, mu_h, H_th, psi, psi_hat);
+x(:,k) = epidem(dt, x(:,k-1), beta(1,1), u(k-1,1), v(k-1,1), zeta(k-1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, psi, psi_hat);
 end
 
 for k=T-1:-1:1
-[l(:,k), dl(:,k)] = pontr(dt, l(:,k+1), x(:,k+1), u(k+1,1), v(k+1,1), zeta(k+1,1), beta(1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, mu_h, H_th, Q, psi, psi_hat);
+[l(:,k), dl(:,k)] = pontr(dt, l(:,k+1), x(:,k+1), u(k+1,1), v(k+1,1), zeta(k+1,1), beta(1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, Q, psi, psi_hat);
 end
 
 
 %Cost function - aggregate and components----------------------------------
-C(1,1) = 0.5*dt*(R(1,1)*u.'*u + Q(4,4)*(x(4,:)*x(4,:).')) + x((length(x(:,1)) - 1),T)*C_dth; %total cost
+%C(1,1) = 0.5*dt*(R(1,1)*u.'*u + Q(4,4)*(x(4,:)*x(4,:).')) + x((length(x(:,1)) - 1),T)*C_dth; %total cost
 C1(1,1) = 0.5*dt*(R(1,1)*u.'*u); %cost associated with government strategy u
 C2(1,1) = 0.5*dt*(Q(4,4)*(x(4,:)*x(4,:).')); %cost associated with the acutely symptomatic population
 C3(1,1) = x((length(x(:,1)) - 1),T)*C_dth; %cost associated with number of deaths
@@ -53,7 +53,7 @@ C(1,1) = C1(1,1)+C2(1,1)+C3(1,1)+C4(1,1);                       %Total Cost
 
 
 
-N_iter = 1; %number of iterations for the convergence of the algorithm
+N_iter = 100000; %number of iterations for the convergence of the algorithm
 
 for j=1:N_iter
 
@@ -66,25 +66,25 @@ for j=1:N_iter
     end
     
     a = 0.9995; %coefficient used to update the current u 
-    u = a*u0 + (1-a)*u1;%new strategy u
-    zeta = a*zeta0 + (1-a)*zeta1;
+    u = a*u0 + (1-a)*u1; %new strategy u
+    zeta = a*zeta0 + (1-a)*zeta1; %new strategy u
     
     %Update the SIDARE model trajectory based on current u
     for k=2:T
         %Controlled SIDARE epidemic model
-        x(:,k) = epidem(dt, x(:,k-1), beta(1,1), u(k-1,1), v(k-1,1), zeta(k-1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, mu_h, H_th, psi, psi_hat);
+        x(:,k) = epidem(dt, x(:,k-1), beta(1,1), u(k-1,1), v(k-1,1), zeta(k-1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d, mu, psi, psi_hat);
     end
     
     %Update the costate variables
     for k=T-1:-1:1
         %Pontryagin equations
-        [l(:,k), dl(:,k)] = pontr(dt, l(:,k+1), x(:,k+1), u(k+1,1), v(k+1,1), zeta(k+1,1), beta(1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d,mu,mu_h, H_th, Q, psi, psi_hat);
+        [l(:,k), dl(:,k)] = pontr(dt, l(:,k+1), x(:,k+1), u(k+1,1), v(k+1,1), zeta(k+1,1), beta(1,1), gamma_i, gamma_d, gamma_a, ksi_i, ksi_d,mu, Q, psi, psi_hat);
     end
 
 
 
     %Cost function - aggregate and components associated with iteration j
-    C(j,1) = 0.5*dt*(R(1,1)*u.'*u +  Q(4,4)*(x(4,:)*x(4,:).')) + x((length(x(:,1)) -1),T)*C_dth; %total cost
+    %C(j,1) = 0.5*dt*(R(1,1)*u.'*u +  Q(4,4)*(x(4,:)*x(4,:).')) + x((length(x(:,1)) -1),T)*C_dth; %total cost
     C1(j,1) = 0.5*dt*(R(1,1)*u.'*u);  %cost associated with government strategy u
     C2(j,1) = 0.5*dt*(Q(4,4)*(x(4,:)*x(4,:).'));  %cost associated with the acutely symptomatic population
     C3(j,1) = x((length(x(:,1)) -1),T)*C_dth; %cost associated with number of deaths
