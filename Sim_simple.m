@@ -53,7 +53,7 @@ C(1,1) = C1(1,1)+C2(1,1)+C3(1,1)+C4(1,1);                       %Total Cost
 
 
 
-N_iter = 100000; %number of iterations for the convergence of the algorithm
+N_iter = 100000 / 5; %number of iterations for the convergence of the algorithm
 
 for j=1:N_iter
 
@@ -67,7 +67,7 @@ for j=1:N_iter
     
     a = 0.9995; %coefficient used to update the current u 
     u = a*u0 + (1-a)*u1; %new strategy u
-    zeta = a*zeta0 + (1-a)*zeta1; %new strategy u
+    zeta = a*zeta0 + (1-a)*zeta1; %new strategy z
     
     %Update the SIDARE model trajectory based on current u
     for k=2:T
