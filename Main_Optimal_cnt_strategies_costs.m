@@ -50,8 +50,10 @@ gamma_a = 1/12.39; %Recovery rate from hospitalized
 H_in = 0.06925; %percentage of hospitalized - range between 5% and 12%
 a_d = 0.0066/H_in; %so the infection mortality rate is 0.66%
 mu = a_d/(1-a_d)*gamma_a; %Transition rate from acutely symptomatic to deceased
-psi = 2/140; %Susceptible rate from vaccinated
-psi_hat = 2/395; %Susceptible rate from recovered
+psi = 1/140; %Susceptible rate from vaccinated
+psi_hat = 1/395; %Susceptible rate from recovered
+zmaxn = 0.005;
+psin = 2;
 dt = 1; %time increments
 
 for q = 1:2 %associated with three different cost weights for the acutely symptomatic population
@@ -77,10 +79,16 @@ for q = 1:2 %associated with three different cost weights for the acutely sympto
         end
 
         %Workspace is saved in a local folder
-        FileName   = ['Q_' num2str(Q(4,4)) '_ThZ_' num2str(theta_z) '.mat'];
+        FileName   = ['Q_' num2str(Q(4,4)) '_ThZ_' num2str(theta_z) '_Zmax_' num2str(zmaxn) '_Psi_' num2str(psin) '.mat'];
         save(FileName)
 
     end
 end
 toc;
 sprintf('Finished')
+
+
+
+
+
+
